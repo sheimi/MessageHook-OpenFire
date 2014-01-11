@@ -89,7 +89,7 @@ public class MessageHookManager {
         String[] cmds = cmd.split(":");
         String roomDomain = message.getTo().getNode() + "@"
                 + message.getTo().getDomain();
-        MessageHook hook = getHook(roomDomain, cmds[0]);
+        MessageHook hook = getHook(roomDomain, cmds[0].trim());
         if (hook == null) {
             MessageHookPlugin.broadCastToClient(roomDomain,
                     "No such command, you can use help for details");

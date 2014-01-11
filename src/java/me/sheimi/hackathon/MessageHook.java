@@ -32,6 +32,14 @@ public class MessageHook implements Comparable<MessageHook> {
         return hookTrigger;
     }
 
+    public boolean isIncludeDomain() {
+        return includeDomain;
+    }
+
+    public void setIncludeDomain(boolean includeDomain) {
+        this.includeDomain = includeDomain;
+    }
+
     public void setHookTrigger(String hookTrigger) {
         this.hookTrigger = hookTrigger;
     }

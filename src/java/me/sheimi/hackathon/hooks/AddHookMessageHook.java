@@ -7,7 +7,7 @@ import me.sheimi.hackathon.MessageHookPlugin;
 public class AddHookMessageHook extends MessageHook {
 
     public AddHookMessageHook() {
-        super("addHook", "add a new hook", "");
+        super("addHook", "add a new hook", "", false);
     }
 
     @Override
@@ -22,8 +22,13 @@ public class AddHookMessageHook extends MessageHook {
                             "Missing Formet Argument");
                     return;
                 }
-                MessageHook hook = new MessageHook(params[0], params[1],
-                        params[2]);
+                MessageHook hook = null;
+                if (params.length == 4) {
+                    hook = new MessageHook(params[0], params[1], params[2]);
+                } else {
+                    hook = new MessageHook(params[0], params[1], params[2],
+                            Boolean.parseBoolean(params[3]));
+                }
                 MessageHookManager.getInstance().addHookForRoom(roomDomain,
                         hook);
                 MessageHookPlugin.broadCastToClient(roomDomain,
@@ -33,5 +38,4 @@ public class AddHookMessageHook extends MessageHook {
         });
         thread.run();
     }
-
 }

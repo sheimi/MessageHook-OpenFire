@@ -7,7 +7,7 @@ import me.sheimi.hackathon.MessageHookPlugin;
 public class RemoveHookMessageHook extends MessageHook {
 
     public RemoveHookMessageHook() {
-        super("removeHook", "remove a hook", "");
+        super("removeHook", "remove a hook", "", false);
     }
 
     @Override

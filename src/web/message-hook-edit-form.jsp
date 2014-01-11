@@ -56,11 +56,13 @@
             String hookTrigger = ParamUtils.getParameter(request, "hookTrigger");
             String hookCommand = ParamUtils.getParameter(request, "hookCommand");
             String hookDes = ParamUtils.getParameter(request, "hookDescripton");
+            boolean includeChatroom = ParamUtils.getBooleanParameter(request, "includeChatroom");
+            
             success = hookTrigger != null && !hookTrigger.isEmpty()
                     && hookCommand != null && !hookCommand.isEmpty()
                     && hookDes != null && !hookDes.isEmpty();
             if (success) {
-                hookManager.addHookForRoom(roomDomain, new MessageHook(hookTrigger, hookDes, hookCommand));
+                hookManager.addHookForRoom(roomDomain, new MessageHook(hookTrigger, hookDes, hookCommand, includeChatroom));
             }
         }
         List<MessageHook> hooks = hookManager.getGeneralHooks();
@@ -77,6 +79,7 @@ Use the form below to edit hookManager settings.<br>
             <th>Hook Trigger</th>
             <th>Hook Command</th>
             <th>Hook Description</th>
+            <th>Include Domain</th>
             <th>Operations</th>
         </thead>
         <% for (MessageHook hook : hooks) { %>
@@ -84,6 +87,7 @@ Use the form below to edit hookManager settings.<br>
             <td><%= hook.getHookTrigger() %></td>
             <td><%= hook.getCommand() %></td>
             <td><%= hook.getDescription() %></td>
+            <td><%= hook.isIncludeDomain() %></td>
             <td></td>
         </tr>
         <% }
@@ -92,6 +96,7 @@ Use the form below to edit hookManager settings.<br>
             <td><%= hook.getHookTrigger() %></td>
             <td><%= hook.getCommand() %></td>
             <td><%= hook.getDescription() %></td>
+            <td><%= hook.isIncludeDomain() %></td>
             <td><a href="./?serviceDomain=<%= serviceDomain %>&chatroom=<%=chatroom%>&delete=true&triggerToDelete=<%=hook.getHookTrigger()%>" >delete</a></td>
         </tr>
         <% } %>
@@ -106,6 +111,9 @@ Use the form below to edit hookManager settings.<br>
     <input type="text" name="hookCommand"/><br>
     <label>Hook Description</label>
     <input type="text" name="hookDescripton"/><br>
+    <label>Include Chatroom as the last parameter: </label> 
+    <input type="radio" name="includeChatroom" value="true" checked/> Yes 
+    <input type="radio" name="includeChatroom" value="flase"/> No<br>
     <input type="submit" value="submit"/>
 </form>
 <% } %>
