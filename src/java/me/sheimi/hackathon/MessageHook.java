@@ -3,6 +3,7 @@ package me.sheimi.hackathon;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.MissingFormatArgumentException;
 
 public class MessageHook implements Comparable<MessageHook> {
@@ -11,13 +12,20 @@ public class MessageHook implements Comparable<MessageHook> {
     private String shortDescription;
     private String description;
     private String command;
+    private boolean includeDomain;
 
     public MessageHook(String hookTrigger, String shortDescription,
             String command) {
+        this(hookTrigger, shortDescription, command, true);
+    }
+
+    public MessageHook(String hookTrigger, String shortDescription,
+            String command, boolean includeParameter) {
         this.hookTrigger = hookTrigger;
         this.shortDescription = shortDescription;
         this.description = shortDescription;
         this.command = command;
+        this.includeDomain = includeParameter;
     }
 
     public String getHookTrigger() {
@@ -53,11 +61,18 @@ public class MessageHook implements Comparable<MessageHook> {
     }
 
     public void execute(String[] params) {
+        final String roomDomain = params[params.length - 1];
         String cmd = null;
         try {
-            cmd = String.format(getCommand(), (Object[]) params);
+            String[] newParams = Arrays.copyOfRange(params, 0,
+                    params.length - 1);
+            cmd = String.format(getCommand(), (Object[]) newParams);
+            if (includeDomain) {
+                cmd = cmd + " " + roomDomain;
+            }
         } catch (MissingFormatArgumentException e) {
-            MessageHookPlugin.broadCastToClient("Missing Formet Argument");
+            MessageHookPlugin.broadCastToClient(roomDomain,
+                    "Missing Formet Argument");
             return;
         }
         final String cmdFinal = cmd;
@@ -65,6 +80,8 @@ public class MessageHook implements Comparable<MessageHook> {
 
             @Override
             public void run() {
+                System.out.println("Command [" + cmdFinal
+                        + "] will be invode ...");
                 StringBuffer sb = new StringBuffer();
                 Process p;
                 try {
@@ -86,7 +103,8 @@ public class MessageHook implements Comparable<MessageHook> {
                     }
                     input.close();
                     error.close();
-                    MessageHookPlugin.broadCastToClient(sb.toString());
+                    MessageHookPlugin.broadCastToClient(roomDomain,
+                            sb.toString());
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -94,10 +112,6 @@ public class MessageHook implements Comparable<MessageHook> {
             }
         });
         thread.start();
-    }
-
-    public void execute() {
-        execute(new String[0]);
     }
 
     @Override

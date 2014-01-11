@@ -1,14 +1,11 @@
 package me.sheimi.hackathon;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.Collection;
 
 import org.jivesoftware.openfire.MessageRouter;
@@ -20,7 +17,6 @@ import org.jivesoftware.openfire.interceptor.PacketInterceptor;
 import org.jivesoftware.openfire.interceptor.PacketRejectedException;
 import org.jivesoftware.openfire.muc.MUCRole;
 import org.jivesoftware.openfire.muc.MUCRoom;
-import org.jivesoftware.openfire.muc.MultiUserChatManager;
 import org.jivesoftware.openfire.muc.MultiUserChatService;
 import org.jivesoftware.openfire.session.Session;
 import org.xmpp.packet.JID;
@@ -30,14 +26,9 @@ import org.xmpp.packet.Packet;
 public class MessageHookPlugin implements Plugin, PacketInterceptor, Runnable {
 
     private InterceptorManager mInterceptorManager;
-    private MultiUserChatManager mMultiUserChatManager;
-    private MessageRouter mRouter;
 
     public MessageHookPlugin() {
         mInterceptorManager = InterceptorManager.getInstance();
-        mMultiUserChatManager = XMPPServer.getInstance()
-                .getMultiUserChatManager();
-        mRouter = XMPPServer.getInstance().getMessageRouter();
     }
 
     @Override
@@ -98,63 +89,81 @@ public class MessageHookPlugin implements Plugin, PacketInterceptor, Runnable {
     @Override
     public void run() {
         File fifo = new File(FIFO_SERVER);
-        JID roomID = new JID("room1@conference.sheimi.vm");
         while (true) {
-            try {
-                BufferedReader br = new BufferedReader(new InputStreamReader(
-                        new FileInputStream(fifo)));
-                StringBuilder s = new StringBuilder();
-                String line = null;
-                while ((line = br.readLine()) != null) {
-                    s.append(line);
-                    s.append('\n');
-                }
-                br.close();
-                
-                Thread.sleep(THREAD_HOLD);
-
-                MultiUserChatService service = mMultiUserChatManager
-                        .getMultiUserChatService(roomID);
-                MUCRoom room = service.getChatRoom(roomID.getNode());
-                Collection<MUCRole> c = room.getOccupants();
-                JID jid = new JID("room1@conference.sheimi.vm/Boardcast");
-                for (MUCRole role : c) {
-                    JID to = role.getUserAddress();
-                    Message newMessage = new Message();
-                    newMessage.setType(Message.Type.groupchat);
-                    newMessage.setBody('\n' + s.toString().trim());
-                    newMessage.setTo(to);
-                    newMessage.setFrom(jid);
-                    mRouter.route(newMessage);
-                }
-            } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            waitServer(fifo);
         }
     }
 
-    public static void broadCastToClient(String content) {
-        File fifo = new File(MessageHookPlugin.FIFO_SERVER);
-        BufferedWriter bw = null;
+    public void waitServer(File fifo) {
+        BufferedReader br = null;
         try {
-            bw = new BufferedWriter(
-                    new OutputStreamWriter(new FileOutputStream(fifo)));
-            bw.write(content);
-            bw.close();
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(
+                    fifo)));
+            StringBuilder s = new StringBuilder();
+            String line = br.readLine();
+            if (line == null)
+                return;
+            String roomDomain = line.trim();
+
+            line = br.readLine();
+            while (line != null && !line.trim().equals("end")) {
+                System.out.println(line);
+                s.append(line);
+                s.append('\n');
+                line = br.readLine();
+            }
+            if (line == null)
+                return;
+
+            broadCastToClient(roomDomain, s.toString());
+
         } catch (FileNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                br.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    public static void broadCastToClient(final String roomDomain,
+            final String content) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                JID roomID = new JID(roomDomain);
+                MessageRouter router = XMPPServer.getInstance()
+                        .getMessageRouter();
+                MultiUserChatService service = XMPPServer.getInstance()
+                        .getMultiUserChatManager()
+                        .getMultiUserChatService(roomID);
+                if (service == null)
+                    return;
+                MUCRoom room = service.getChatRoom(roomID.getNode());
+                if (room == null)
+                    return;
+                Collection<MUCRole> c = room.getOccupants();
+                JID jid = new JID(roomID + "/Boardcast");
+                for (MUCRole role : c) {
+                    JID to = role.getUserAddress();
+                    Message newMessage = new Message();
+                    newMessage.setType(Message.Type.groupchat);
+                    newMessage.setBody('\n' + content.toString().trim());
+                    newMessage.setTo(to);
+                    newMessage.setFrom(jid);
+                    router.route(newMessage);
+                }
+            }
+        });
+        thread.start();
     }
 
 }

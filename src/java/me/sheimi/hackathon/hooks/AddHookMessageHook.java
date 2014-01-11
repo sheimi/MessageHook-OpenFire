@@ -16,13 +16,18 @@ public class AddHookMessageHook extends MessageHook {
 
             @Override
             public void run() {
-                if (params.length < 3) {
-                    MessageHookPlugin.broadCastToClient("Missing Formet Argument");
+                final String roomDomain = params[params.length - 1];
+                if (params.length < 4) {
+                    MessageHookPlugin.broadCastToClient(roomDomain,
+                            "Missing Formet Argument");
                     return;
                 }
-                MessageHook hook = new MessageHook(params[0], params[1], params[2]);
-                MessageHookManager.getInstance().addHook(hook);
-                MessageHookPlugin.broadCastToClient("New hook has added");
+                MessageHook hook = new MessageHook(params[0], params[1],
+                        params[2]);
+                MessageHookManager.getInstance().addHookForRoom(roomDomain,
+                        hook);
+                MessageHookPlugin.broadCastToClient(roomDomain,
+                        "New hook has added");
             }
 
         });

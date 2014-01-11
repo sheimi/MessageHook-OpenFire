@@ -16,12 +16,16 @@ public class RemoveHookMessageHook extends MessageHook {
 
             @Override
             public void run() {
-                if (params.length < 1) {
-                    MessageHookPlugin.broadCastToClient("Missing Formet Argument");
+                final String roomDomain = params[params.length - 1];
+                if (params.length < 2) {
+                    MessageHookPlugin.broadCastToClient(roomDomain,
+                            "Missing Formet Argument");
                     return;
                 }
-                MessageHookManager.getInstance().removeHook(params[0]);
-                MessageHookPlugin.broadCastToClient("hook has removed");
+                MessageHookManager.getInstance().removeHookForRoom(roomDomain,
+                        params[0]);
+                MessageHookPlugin.broadCastToClient(roomDomain,
+                        "hook has removed");
             }
 
         });

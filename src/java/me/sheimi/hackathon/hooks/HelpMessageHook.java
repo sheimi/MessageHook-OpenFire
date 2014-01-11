@@ -13,22 +13,32 @@ public class HelpMessageHook extends MessageHook {
     }
 
     @Override
-    public void execute(String[] params) {
+    public void execute(final String[] params) {
         Thread thread = new Thread(new Runnable() {
 
             @Override
             public void run() {
+                String roomDomain = params[params.length - 1];
                 List<MessageHook> hooks = MessageHookManager.getInstance()
-                        .getHooks();
+                        .getGeneralHooks();
+                List<MessageHook> hooksForRoom = MessageHookManager
+                        .getInstance().getHooksForRoom(roomDomain);
                 StringBuffer sb = new StringBuffer();
-                sb.append('\n');
+                sb.append("\nGeneral Hooks: \n");
                 for (MessageHook hook : hooks) {
                     sb.append(hook.getHookTrigger());
                     sb.append("  --  ");
                     sb.append(hook.getDescription());
                     sb.append("\n");
                 }
-                MessageHookPlugin.broadCastToClient(sb.toString());
+                sb.append("\nHooks for this chatroom:");
+                for (MessageHook hook : hooksForRoom) {
+                    sb.append(hook.getHookTrigger());
+                    sb.append("  --  ");
+                    sb.append(hook.getDescription());
+                    sb.append("\n");
+                }
+                MessageHookPlugin.broadCastToClient(roomDomain, sb.toString());
             }
 
         });
