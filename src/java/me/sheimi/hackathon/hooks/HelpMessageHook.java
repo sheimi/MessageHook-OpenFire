@@ -31,7 +31,7 @@ public class HelpMessageHook extends MessageHook {
                     sb.append(hook.getDescription());
                     sb.append("\n");
                 }
-                sb.append("\nHooks for this chatroom:");
+                sb.append("\nHooks for this chatroom:\n");
                 for (MessageHook hook : hooksForRoom) {
                     sb.append(hook.getHookTrigger());
                     sb.append("  --  ");
