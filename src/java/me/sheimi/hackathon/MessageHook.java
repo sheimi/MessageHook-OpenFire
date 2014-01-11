@@ -1,44 +1,74 @@
 package me.sheimi.hackathon;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.util.MissingFormatArgumentException;
 
-import org.xmpp.packet.Message;
+public class MessageHook implements Comparable<MessageHook> {
 
-public class MessageHook {
+    private String hookTrigger;
+    private String shortDescription;
+    private String description;
+    private String command;
 
-    private static MessageHook mHook;
-    private static String prefix = ":!";
-
-    private MessageHook() {
+    public MessageHook(String hookTrigger, String shortDescription,
+            String command) {
+        this.hookTrigger = hookTrigger;
+        this.shortDescription = shortDescription;
+        this.description = shortDescription;
+        this.command = command;
     }
 
-    public static synchronized MessageHook getInstance() {
-        if (mHook == null) {
-            mHook = new MessageHook();
-        }
-        return mHook;
+    public String getHookTrigger() {
+        return hookTrigger;
     }
 
-    public void processMessage(final Message message) {
-        String body = message.getBody();
-        if (!body.startsWith(prefix))
+    public void setHookTrigger(String hookTrigger) {
+        this.hookTrigger = hookTrigger;
+    }
+
+    public String getShortDescription() {
+        return shortDescription;
+    }
+
+    public void setShortDescription(String shortDescription) {
+        this.shortDescription = shortDescription;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCommand() {
+        return command;
+    }
+
+    public void setCommand(String command) {
+        this.command = command;
+    }
+
+    public void execute(String[] params) {
+        String cmd = null;
+        try {
+            cmd = String.format(getCommand(), (Object[]) params);
+        } catch (MissingFormatArgumentException e) {
+            MessageHookPlugin.broadCastToClient("Missing Formet Argument");
             return;
-        final String cmd = body.substring(prefix.length()).trim();
+        }
+        final String cmdFinal = cmd;
         Thread thread = new Thread(new Runnable() {
 
             @Override
             public void run() {
-                System.out.println("Command " + cmd + " will process ... ");
                 StringBuffer sb = new StringBuffer();
                 Process p;
                 try {
-                    p = Runtime.getRuntime().exec(cmd);
+                    p = Runtime.getRuntime().exec(cmdFinal);
                     BufferedReader input = new BufferedReader(
                             new InputStreamReader(p.getInputStream()));
                     BufferedReader error = new BufferedReader(
@@ -65,4 +95,15 @@ public class MessageHook {
         });
         thread.start();
     }
+
+    public void execute() {
+        execute(new String[0]);
+    }
+
+    @Override
+    public int compareTo(MessageHook h) {
+        // TODO Auto-generated method stub
+        return getHookTrigger().compareTo(h.getHookTrigger());
+    }
+
 }

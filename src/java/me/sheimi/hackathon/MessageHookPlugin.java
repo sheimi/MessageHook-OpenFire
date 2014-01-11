@@ -56,7 +56,7 @@ public class MessageHookPlugin implements Plugin, PacketInterceptor, Runnable {
         String body = message.getBody();
         if (body == null)
             return;
-        MessageHook.getInstance().processMessage(message);
+        MessageHookManager.getInstance().processMessage(message);
 
     }
 
@@ -74,6 +74,7 @@ public class MessageHookPlugin implements Plugin, PacketInterceptor, Runnable {
 
     public static final String TMP_DIR = "/tmp/message-hook/";
     public static final String FIFO_SERVER = TMP_DIR + "chatroom-broadcast";
+    public static final int THREAD_HOLD = 500;
 
     private void createFIFOServer() {
         File tmpDir = new File(TMP_DIR);
@@ -109,6 +110,8 @@ public class MessageHookPlugin implements Plugin, PacketInterceptor, Runnable {
                     s.append('\n');
                 }
                 br.close();
+                
+                Thread.sleep(THREAD_HOLD);
 
                 MultiUserChatService service = mMultiUserChatManager
                         .getMultiUserChatService(roomID);
@@ -119,7 +122,7 @@ public class MessageHookPlugin implements Plugin, PacketInterceptor, Runnable {
                     JID to = role.getUserAddress();
                     Message newMessage = new Message();
                     newMessage.setType(Message.Type.groupchat);
-                    newMessage.setBody(s.toString().trim());
+                    newMessage.setBody('\n' + s.toString().trim());
                     newMessage.setTo(to);
                     newMessage.setFrom(jid);
                     mRouter.route(newMessage);
@@ -128,6 +131,9 @@ public class MessageHookPlugin implements Plugin, PacketInterceptor, Runnable {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
