@@ -9,7 +9,7 @@ import me.sheimi.hackathon.MessageHookPlugin;
 public class HelpMessageHook extends MessageHook {
 
     public HelpMessageHook() {
-        super("help", "display hooks info", null);
+        super("help", "display hooks info", "");
     }
 
     @Override

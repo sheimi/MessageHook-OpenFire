@@ -13,16 +13,14 @@
     <minServerVersion>3.7.0</minServerVersion>
     
     <!-- UI extension -->
-    <!--
     <adminconsole>		
-		<tab id="tab-server">
-			<sidebar id="sidebar-server-settings">
-				<item id="contentfilter-props-edit-form" name="Content Filter"
-					url="contentfilter-props-edit-form.jsp"
-					description="Click to configure content filter" />
-			</sidebar>
-        </tab>
+      <tab id="tab-server">
+        <sidebar id="sidebar-server-settings">
+          <item id="message-hook-edit-form" name="Message Hook"
+            url="message-hook-edit-form.jsp"
+            description="Click to configure message hook" />
+        </sidebar>
+      </tab>
     </adminconsole>
-    -->
     
 </plugin>

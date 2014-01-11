@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import me.sheimi.hackathon.hooks.AddHookMessageHook;
 import me.sheimi.hackathon.hooks.HelpMessageHook;
+import me.sheimi.hackathon.hooks.RemoveHookMessageHook;
 
 import org.xmpp.packet.Message;
 
@@ -18,6 +20,8 @@ public class MessageHookManager {
 
     private MessageHookManager() {
         addHook(new HelpMessageHook());
+        addHook(new RemoveHookMessageHook());
+        addHook(new AddHookMessageHook());
         addHook(new MessageHook("execute", "execute an command", "%s"));
         addHook(new MessageHook("argument test", "for argument test", "%s%s%s"));
     }
@@ -38,6 +42,10 @@ public class MessageHookManager {
     public void addHook(MessageHook hook) {
         mHooks.put(hook.getHookTrigger(), hook);
     }
+    
+    public void removeHook(String hookTrigger) {
+        mHooks.remove(hookTrigger);
+    }
 
     public void processMessage(final Message message) {
         String body = message.getBody();
@@ -46,6 +54,10 @@ public class MessageHookManager {
         String cmd = body.substring(prefix.length()).trim();
         String[] cmds = cmd.split(":");
         MessageHook hook = mHooks.get(cmds[0]);
+        if (hook == null) {
+            MessageHookPlugin.broadCastToClient("No such command, you can use help for details");
+            return;
+        }
         if (cmds.length > 1) {
             String[] params = new String[cmds.length - 1];
             for (int i = 0; i < cmds.length - 1; i++) {
